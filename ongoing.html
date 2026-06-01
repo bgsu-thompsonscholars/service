@@ -25,189 +25,94 @@
   --border:#ddd4c8;
 }
 * { box-sizing:border-box; margin:0; padding:0; }
-body {
-  font-family:'Montserrat', sans-serif;
-  background:var(--bg); color:var(--text);
-  min-height:100vh; line-height:1.5;
-}
+body { font-family:'Montserrat', sans-serif; background:var(--bg); color:var(--text); min-height:100vh; line-height:1.5; }
 a { color:inherit; }
 
 .header-bar { height:5px; background:var(--orange); }
-
 header { background:var(--brown); padding:3rem 2rem 1.7rem; }
-.header-inner {
-  max-width:1080px; margin:0 auto;
-  display:flex; flex-direction:row; align-items:center; gap:1.25rem;
-}
+.header-inner { max-width:1080px; margin:0 auto; display:flex; flex-direction:row; align-items:center; gap:1.25rem; }
 .header-logo { width:100px; height:100px; flex-shrink:0; border-radius:50%; }
-.header-text h1 {
-  font-family:'BrittanySignature', cursive;
-  font-size:3.9rem; font-weight:400; color:var(--white); line-height:1;
-}
-.header-eyebrow {
-  font-family:'Montserrat', sans-serif;
-  font-size:0.82rem; font-weight:600;
-  letter-spacing:0.08em; text-transform:uppercase;
-  color:var(--orange); margin-top:24px;
-}
+.header-text h1 { font-family:'BrittanySignature', cursive; font-size:3.9rem; font-weight:400; color:var(--white); line-height:1; }
+.header-eyebrow { font-family:'Montserrat', sans-serif; font-size:0.82rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--orange); margin-top:24px; }
 
-/* layout: main + sidebar */
 .wrap { max-width:1080px; margin:0 auto; padding:2.25rem 2rem 5rem; }
 .layout { display:flex; gap:2rem; align-items:flex-start; }
 main { flex:1; min-width:0; }
 aside { width:268px; flex-shrink:0; position:sticky; top:1.5rem; }
+.intro { color:var(--text-mid); font-size:0.92rem; margin-bottom:1.3rem; max-width:62ch; }
 
-.intro { color:var(--text-mid); font-size:0.92rem; margin-bottom:1.6rem; max-width:62ch; }
+.search-wrap { position:relative; margin-bottom:1.6rem; }
+.search-wrap > svg { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--text-muted); pointer-events:none; }
+.search-input { width:100%; font-family:'Montserrat',sans-serif; font-size:0.9rem; color:var(--text); padding:0.72rem 0.9rem 0.72rem 2.5rem; border:1.5px solid var(--border); border-radius:10px; background:var(--white); }
+.search-input:focus { outline:none; border-color:var(--orange); box-shadow:0 0 0 3px var(--orange-light); }
+.search-input::placeholder { color:var(--text-muted); }
+.search-input:disabled { opacity:.6; }
 
-.section-label {
-  font-size:0.62rem; font-weight:700;
-  letter-spacing:0.2em; text-transform:uppercase;
-  color:var(--orange);
-  display:flex; align-items:center; gap:10px; margin-bottom:1.1rem;
-}
-.section-label::after {
-  content:''; flex:1; height:1.5px;
-  background:linear-gradient(to right, var(--orange-mid), transparent);
-  border-radius:2px;
-}
-.past-label {
-  font-size:0.62rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase;
-  color:var(--text-muted);
-  display:flex; align-items:center; gap:10px; margin:2.4rem 0 1.1rem;
-}
-.past-label::after {
-  content:''; flex:1; height:1.5px;
-  background:linear-gradient(to right, var(--border), transparent); border-radius:2px;
-}
+.section-label { font-size:0.62rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--orange); display:flex; align-items:center; gap:10px; margin-bottom:1.1rem; }
+.section-label::after { content:''; flex:1; height:1.5px; background:linear-gradient(to right, var(--orange-mid), transparent); border-radius:2px; }
+.past-label { font-size:0.62rem; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--text-muted); display:flex; align-items:center; gap:10px; margin:2.4rem 0 1.1rem; }
+.past-label::after { content:''; flex:1; height:1.5px; background:linear-gradient(to right, var(--border), transparent); border-radius:2px; }
 
-#loading, #error-msg {
-  text-align:center; padding:4rem 2rem;
-  font-size:0.75rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase;
-  color:var(--text-muted);
-}
+#loading, #error-msg { text-align:center; padding:4rem 2rem; font-size:0.75rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); }
 #error-msg { color:var(--orange); }
 
 .events-list { display:flex; flex-direction:column; gap:0.6rem; }
-.month-divider {
-  font-size:0.7rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase;
-  color:var(--brown-light); margin:1.2rem 0 0.3rem 0.2rem;
-}
 
-/* ---- card ---- */
-.event-card {
-  background:var(--white); border:1.5px solid var(--border);
-  border-radius:12px; overflow:hidden; cursor:pointer;
-  transition:border-color .16s, box-shadow .16s;
-}
+.month-divider { font-size:1.35rem; font-weight:700; letter-spacing:0.02em; text-transform:uppercase; color:var(--teal); display:flex; align-items:center; gap:12px; margin:2.6rem 0 1.1rem; padding-top:1.3rem; border-top:2.5px solid var(--seafoam); }
+.month-divider::before { content:''; width:12px; height:12px; background:var(--teal); border-radius:3px; transform:rotate(45deg); flex-shrink:0; }
+.events-list > .month-divider:first-child { border-top:none; padding-top:0; margin-top:0.2rem; }
+
+.event-card { background:var(--white); border:1.5px solid var(--border); border-radius:12px; overflow:hidden; cursor:pointer; transition:border-color .16s, box-shadow .16s; }
 .event-card:hover { border-color:var(--orange); box-shadow:0 2px 16px rgba(253,80,0,.08); }
 .event-card.open { border-color:var(--orange); border-left-width:4px; }
 .event-card.past { opacity:.72; }
-
 .card-header { display:flex; align-items:center; gap:1rem; padding:.9rem 1.1rem; user-select:none; }
-
-.date-badge {
-  min-width:56px; text-align:center;
-  background:var(--orange-light); border:1.5px solid var(--orange-mid);
-  border-radius:9px; padding:.4rem .45rem; flex-shrink:0;
-}
+.date-badge { min-width:56px; text-align:center; background:var(--orange-light); border:1.5px solid var(--orange-mid); border-radius:9px; padding:.4rem .45rem; flex-shrink:0; }
 .date-badge .mon { font-size:.58rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--orange); line-height:1.2; }
 .date-badge .day { font-size:1.45rem; font-weight:700; color:var(--brown); line-height:1.05; }
 .date-badge .dow { font-size:.56rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--brown-light); line-height:1.4; }
 .date-badge.recurring { background:var(--seafoam-light); border-color:var(--seafoam); }
 .date-badge.recurring .mon { color:var(--teal); }
-
 .card-info { flex:1; min-width:0; }
 .title-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .event-title { font-size:.92rem; font-weight:600; color:var(--text); }
 .full-date { font-size:.72rem; font-weight:500; color:var(--text-muted); margin-top:3px; }
-
-.type-badge {
-  font-size:.57rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
-  padding:3px 8px; border-radius:20px; white-space:nowrap;
-}
+.type-badge { font-size:.57rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:3px 8px; border-radius:20px; white-space:nowrap; }
 .badge-thompson { background:var(--orange-light); color:var(--orange); border:1px solid var(--orange-mid); }
-.badge-active   { background:var(--seafoam-light); color:var(--teal); border:1px solid var(--seafoam); }
-
-.chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:6px; }
-.chip {
-  display:inline-flex; align-items:center; gap:4px;
-  font-size:.62rem; font-weight:500;
-  padding:3px 9px; border-radius:20px;
-  background:var(--tan-light); color:var(--text-mid); border:1px solid var(--border);
-}
-.chip-tag { background:var(--gold-light); color:#7b5a12; border-color:#f0d898; }
-
 .chevron { color:var(--text-muted); flex-shrink:0; transition:transform .2s; }
 .event-card.open .chevron { transform:rotate(180deg); }
-
 .card-body { max-height:0; overflow:hidden; transition:max-height .25s ease, padding .25s ease; padding:0 1.1rem; }
 .event-card.open .card-body { max-height:600px; padding:0 1.1rem 1.1rem 1.1rem; }
 .info-text { font-size:.85rem; color:var(--text-mid); margin-bottom:.4rem; }
 .info-text.sub { font-size:.8rem; color:var(--text-muted); }
-.thompson-note {
-  font-size:.78rem; color:var(--brown); background:var(--orange-light);
-  border-left:3px solid var(--orange); border-radius:6px;
-  padding:.6rem .75rem; margin:.6rem 0;
-}
-
-.action-label, .cal-label {
-  font-size:.58rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
-  color:var(--text-muted); margin:.7rem 0 .4rem;
-}
+.thompson-note { font-size:.78rem; color:var(--brown); background:var(--orange-light); border-left:3px solid var(--orange); border-radius:6px; padding:.6rem .75rem; margin:.6rem 0; }
+.action-label { font-size:.58rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--text-muted); margin:.7rem 0 .4rem; }
 .action-btns { display:flex; flex-wrap:wrap; gap:.5rem; }
-.btn {
-  display:inline-flex; align-items:center; gap:6px;
-  font-family:'Montserrat',sans-serif; font-size:.74rem; font-weight:600;
-  padding:.5rem .9rem; border-radius:8px; text-decoration:none;
-  border:1.5px solid transparent; cursor:pointer; transition:filter .15s, background .15s;
-}
+.btn { display:inline-flex; align-items:center; gap:6px; font-family:'Montserrat',sans-serif; font-size:.74rem; font-weight:600; padding:.5rem .9rem; border-radius:8px; text-decoration:none; border:1.5px solid transparent; cursor:pointer; transition:filter .15s, background .15s; }
 .btn-signup { background:var(--orange); color:#fff; }
 .btn-signup:hover { filter:brightness(.93); }
 .btn-access { background:var(--teal); color:#fff; }
 .btn-access:hover { filter:brightness(1.1); }
+.no-events { text-align:center; padding:2.6rem; font-size:.72rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted); border:1.5px dashed var(--border); border-radius:12px; }
 
-.no-events {
-  text-align:center; padding:2.6rem;
-  font-size:.72rem; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
-  color:var(--text-muted);
-  border:1.5px dashed var(--border); border-radius:12px;
-}
-
-/* ---- sidebar ---- */
-.aside-label {
-  font-size:.6rem; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
-  color:var(--text-muted); margin-bottom:.9rem;
-}
+.aside-label { font-size:.6rem; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--text-muted); margin-bottom:.9rem; }
 .nav-btns { display:flex; flex-direction:column; gap:.6rem; }
-.nav-btn {
-  display:flex; align-items:flex-start; gap:.7rem;
-  background:var(--white); border:1.5px solid var(--border); border-radius:11px;
-  padding:.8rem .9rem; text-decoration:none;
-  transition:border-color .16s, box-shadow .16s, transform .12s;
-}
+.nav-btn { display:flex; align-items:flex-start; gap:.7rem; background:var(--white); border:1.5px solid var(--border); border-radius:11px; padding:.8rem .9rem; text-decoration:none; transition:border-color .16s, box-shadow .16s, transform .12s; }
 .nav-btn:hover { border-color:var(--accent); box-shadow:0 3px 14px rgba(79,44,29,.08); transform:translateY(-1px); }
-.nav-btn .ic {
-  width:30px; height:30px; flex-shrink:0; border-radius:8px;
-  display:flex; align-items:center; justify-content:center;
-  background:var(--accent-light); color:var(--accent);
-}
+.nav-btn .ic { width:30px; height:30px; flex-shrink:0; border-radius:8px; display:flex; align-items:center; justify-content:center; background:var(--accent-light); color:var(--accent); }
 .nav-btn .txt { min-width:0; }
 .nav-btn .t { font-size:.82rem; font-weight:600; color:var(--text); line-height:1.2; display:flex; align-items:center; gap:5px; }
 .nav-btn .d { font-size:.66rem; color:var(--text-muted); margin-top:2px; line-height:1.3; }
 .nav-btn.current { background:var(--accent-light); border-color:var(--accent); cursor:default; }
 .nav-btn.current .t { color:var(--accent); }
 .ext-ic { color:var(--text-muted); opacity:.7; }
-
-.nav-orange  { --accent:var(--orange);  --accent-light:var(--orange-light); }
-.nav-teal    { --accent:var(--teal);    --accent-light:var(--teal-light); }
+.nav-orange { --accent:var(--orange); --accent-light:var(--orange-light); }
+.nav-teal { --accent:var(--teal); --accent-light:var(--teal-light); }
 .nav-seafoam { --accent:var(--seafoam); --accent-light:var(--seafoam-light); }
-.nav-gold    { --accent:#bd8a16;        --accent-light:var(--gold-light); }
-.nav-brown   { --accent:var(--brown);   --accent-light:var(--tan-light); }
+.nav-gold { --accent:#bd8a16; --accent-light:var(--gold-light); }
+.nav-brown { --accent:var(--brown); --accent-light:var(--tan-light); }
 
-footer {
-  max-width:1080px; margin:0 auto; padding:1.5rem 2rem 3rem;
-  font-size:.68rem; color:var(--text-muted); text-align:center;
-}
+footer { max-width:1080px; margin:0 auto; padding:1.5rem 2rem 3rem; font-size:.68rem; color:var(--text-muted); text-align:center; }
 
 @media (max-width:780px) {
   .layout { flex-direction:column; }
@@ -216,6 +121,7 @@ footer {
   .header-text h1 { font-size:3.2rem; }
   .header-inner { gap:1rem; }
   .header-logo { width:78px; height:78px; }
+  .month-divider { font-size:1.15rem; }
 }
 @media (max-width:480px) { .nav-btns { grid-template-columns:1fr; } }
 
@@ -237,12 +143,17 @@ footer {
   <div class="layout">
     <main>
       <p class="intro">Recurring and flexible service opportunities you can return to throughout the term. Tap any card for sign-up details and timeslots.</p>
+      <div class="search-wrap">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="search" class="search-input" type="search" placeholder="Search by name or description…" autocomplete="off" disabled>
+      </div>
       <div id="loading">Loading…</div>
       <div id="error-msg" style="display:none"></div>
       <div id="content" style="display:none">
-        <p class="section-label">Ongoing & Recurring</p>
+        <p class="section-label">Ongoing &amp; Recurring</p>
         <div id="list" class="events-list"></div>
       </div>
+      <div id="no-results" class="no-events" style="display:none">No opportunities match your search.</div>
     </main>
     <aside>
     <p class="aside-label">Quick Links</p>
@@ -261,7 +172,7 @@ footer {
       </a>
       <div class="nav-btn nav-teal current" aria-current="page">
         <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></span>
-        <span class="txt"><span class="t">Ongoing Opportunities</span><span class="d">Recurring & flexible service</span></span>
+        <span class="txt"><span class="t">Ongoing Opportunities</span><span class="d">Recurring &amp; flexible service</span></span>
       </div>
       <a class="nav-btn nav-gold" href="online.html">
         <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></span>
@@ -272,7 +183,7 @@ footer {
   </div>
 </div>
 
-<footer>BGSU Thompson Scholarship Programs · Updated automatically from the service opportunities spreadsheet.</footer>
+<footer>BGSU Thompson Scholarship Programs &middot; Updated automatically from the service opportunities spreadsheet.</footer>
 
 <script>
 
@@ -283,98 +194,59 @@ const DOWF = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Satur
 
 function csvUrl(gid){ return `https://docs.google.com/spreadsheets/d/1OfMpjIk5qZa_coQ48mcEqerCkZBkLxJrHTcqwnsGT0c/export?format=csv&gid=${gid}`; }
 function gvizUrl(gid){ return `https://docs.google.com/spreadsheets/d/1OfMpjIk5qZa_coQ48mcEqerCkZBkLxJrHTcqwnsGT0c/gviz/tq?tqx=out:csv&gid=${gid}`; }
-
 async function fetchSheet(gid){
-  try {
-    const r = await fetch(csvUrl(gid));
-    if (r.ok) return await r.text();
-    throw new Error('export ' + r.status);
-  } catch(e) {
-    const r2 = await fetch(gvizUrl(gid));
-    if (!r2.ok) throw new Error('HTTP ' + r2.status);
-    return await r2.text();
-  }
+  try { const r = await fetch(csvUrl(gid)); if (r.ok) return await r.text(); throw new Error('export '+r.status); }
+  catch(e){ const r2 = await fetch(gvizUrl(gid)); if (!r2.ok) throw new Error('HTTP '+r2.status); return await r2.text(); }
 }
-
-// robust CSV parser (handles quoted fields and newlines inside quotes)
 function parseCSV(text){
-  const rows = []; let row = []; let cur = ''; let inQ = false;
-  for (let i=0; i<text.length; i++){
-    const c = text[i];
-    if (inQ){
-      if (c === '"'){
-        if (text[i+1] === '"'){ cur += '"'; i++; }
-        else inQ = false;
-      } else cur += c;
-    } else {
-      if (c === '"') inQ = true;
-      else if (c === ',') { row.push(cur); cur=''; }
-      else if (c === '\n'){ row.push(cur); rows.push(row); row=[]; cur=''; }
-      else if (c === '\r'){ /* skip */ }
-      else cur += c;
-    }
-  }
+  const rows=[]; let row=[], cur='', inQ=false;
+  for (let i=0;i<text.length;i++){ const c=text[i];
+    if (inQ){ if (c==='"'){ if (text[i+1]==='"'){ cur+='"'; i++; } else inQ=false; } else cur+=c; }
+    else { if (c==='"') inQ=true; else if (c===','){ row.push(cur); cur=''; }
+      else if (c==='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; }
+      else if (c==='\r'){} else cur+=c; } }
   if (cur.length || row.length){ row.push(cur); rows.push(row); }
   if (!rows.length) return [];
-  const headers = rows[0].map(h => h.trim().toLowerCase());
-  return rows.slice(1).map(cols => {
-    const o = {};
-    headers.forEach((h,i)=> o[h] = (cols[i]||'').trim());
-    return o;
-  }).filter(o => Object.values(o).some(v => v));
+  const headers = rows[0].map(h=>h.trim().toLowerCase());
+  return rows.slice(1).map(cols=>{ const o={}; headers.forEach((h,i)=> o[h]=(cols[i]||'').trim()); return o; })
+             .filter(o=> Object.values(o).some(v=>v));
 }
-
-function get(row, ...keys){
-  for (const k of keys){ const v = row[k.toLowerCase()]; if (v && v.trim()) return v.trim(); }
-  return '';
-}
-
+function get(row){ for (let i=1;i<arguments.length;i++){ const v=row[arguments[i].toLowerCase()]; if (v && v.trim()) return v.trim(); } return ''; }
 function parseDate(raw){
   if (!raw) return null;
   const cleaned = raw.replace(/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s*/i,'');
-  let d = new Date(cleaned);
-  if (!isNaN(d.getTime())) return d;
+  let d = new Date(cleaned); if (!isNaN(d.getTime())) return d;
   const p = raw.split(/[\/\-\.]/);
-  if (p.length >= 3){
-    d = new Date(`${p[2]}-${String(p[0]).padStart(2,'0')}-${String(p[1]).padStart(2,'0')}`);
-    if (!isNaN(d.getTime())) return d;
-  }
+  if (p.length>=3){ d=new Date(`${p[2]}-${String(p[0]).padStart(2,'0')}-${String(p[1]).padStart(2,'0')}`); if (!isNaN(d.getTime())) return d; }
   return null;
 }
-
 function fullDate(d){ return `${DOWF[d.getDay()]}, ${MONF[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; }
-function isYes(v){ return /^\s*y/i.test(v || ''); }
+function isYes(v){ return /^\s*y/i.test(v||''); }
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function wireSearch(render){ const s=document.getElementById('search'); s.disabled=false; s.addEventListener('input', ()=> render(s.value.trim().toLowerCase())); }
 
 const iconLink = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
 const iconStar = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
 
 
 const GID = '1304110072';
+let items = [], listEl;
+function matchEv(ev,q){ return (ev.event+' '+ev.desc+' '+ev.info).toLowerCase().includes(q); }
 
 function buildCard(ev){
   const card = document.createElement('div');
   card.className = 'event-card';
   const thompson = isYes(ev.thompson);
-  const tBadge = thompson ? `<span class="type-badge badge-thompson">${iconStar} Supports Thompson</span>` : '';
+  const tBadge = thompson ? `<span class="type-badge badge-thompson">${iconStar} Thompson Service</span>` : '';
   const dateLabel = ev.date || 'Ongoing';
-  const signupBtn = ev.signup
-    ? `<p class="action-label">Sign Up</p><div class="action-btns"><a class="btn btn-signup" href="${esc(ev.signup)}" target="_blank" rel="noopener">${iconLink} Sign Up to Serve</a></div>`
-    : '';
-  const note = thompson
-    ? `<p class="thompson-note"><strong>Thompson service:</strong> this opportunity supports the Thompson Scholars program directly.</p>`
-    : '';
+  const signupBtn = ev.signup ? `<p class="action-label">Sign Up</p><div class="action-btns"><a class="btn btn-signup" href="${esc(ev.signup)}" target="_blank" rel="noopener">${iconLink} Sign Up to Serve</a></div>` : '';
+  const note = thompson ? `<p class="thompson-note"><strong>Thompson Service:</strong> this opportunity supports the Thompson Scholars program directly.</p>` : '';
   card.innerHTML = `
     <div class="card-header">
-      <div class="date-badge recurring">
-        <div class="mon" style="font-size:.5rem">${esc(dateLabel).slice(0,14)}</div>
-      </div>
+      <div class="date-badge recurring"><div class="mon" style="font-size:.5rem">${esc(dateLabel).slice(0,14)}</div></div>
       <div class="card-info">
-        <div class="title-row">
-          <span class="event-title">${esc(ev.event) || 'Ongoing Opportunity'}</span>
-          ${tBadge}
-        </div>
-        ${ev.desc ? `<div class="full-date">${esc(ev.desc).slice(0,90)}${ev.desc.length>90?'…':''}</div>` : ''}
+        <div class="title-row"><span class="event-title">${esc(ev.event) || 'Ongoing Opportunity'}</span>${tBadge}</div>
+        ${ev.desc ? `<div class="full-date">${esc(ev.desc).slice(0,90)}${ev.desc.length>90?'\u2026':''}</div>` : ''}
       </div>
       <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
@@ -382,21 +254,27 @@ function buildCard(ev){
       ${ev.desc ? `<p class="info-text">${esc(ev.desc)}</p>` : ''}
       ${ev.info ? `<p class="info-text sub">${esc(ev.info)}</p>` : ''}
       ${(!ev.desc && !ev.info) ? `<p class="info-text sub" style="font-style:italic">No additional details provided.</p>` : ''}
-      ${note}
-      ${signupBtn}
+      ${note}${signupBtn}
     </div>`;
   card.querySelector('.card-header').addEventListener('click', ()=> card.classList.toggle('open'));
   return card;
+}
+
+function render(q){
+  q = q || ''; listEl.innerHTML = ''; let shown = 0;
+  items.forEach(ev=>{ if (q && !matchEv(ev,q)) return; listEl.appendChild(buildCard(ev)); shown++; });
+  if (!q && !shown) listEl.innerHTML = '<div class="no-events">No ongoing opportunities are active right now.</div>';
+  document.getElementById('no-results').style.display = (q && !shown) ? 'block' : 'none';
 }
 
 async function init(){
   const loading = document.getElementById('loading');
   const errorMsg = document.getElementById('error-msg');
   const content = document.getElementById('content');
-  const list = document.getElementById('list');
+  listEl = document.getElementById('list');
   try {
     const rows = parseCSV(await fetchSheet(GID));
-    const items = rows.map(r => ({
+    items = rows.map(r=>({
       date: get(r,'Date','date'),
       event: get(r,'Event','event','name'),
       desc: get(r,'Description','description'),
@@ -404,17 +282,12 @@ async function init(){
       signup: get(r,'How to sign up','how to sign up','how to sign-up','sign up','signup','link'),
       thompson: get(r,'Thompson Service','thompson service','thompson'),
       active: get(r,'Active','active'),
-    })).filter(e => e.event && !/^\s*n/i.test(e.active));   // hide rows where Active = No
-
-    if (!items.length){
-      list.innerHTML = '<div class="no-events">No ongoing opportunities are active right now.</div>';
-    } else {
-      items.forEach(ev => list.appendChild(buildCard(ev)));
-    }
+    })).filter(e=> e.event && !/^\s*n/i.test(e.active));
     loading.style.display='none'; content.style.display='block';
+    render(''); wireSearch(render);
   } catch(err){
     loading.style.display='none'; errorMsg.style.display='block';
-    errorMsg.textContent = `Couldn't load opportunities — ${err.message}. Make sure the spreadsheet is shared as "Anyone with the link can view."`;
+    errorMsg.textContent = `Couldn't load opportunities \u2014 ${err.message}. Make sure the spreadsheet is shared as "Anyone with the link can view."`;
   }
 }
 init();
