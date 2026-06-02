@@ -240,7 +240,7 @@ function buildCard(ev){
   const tBadge = thompson ? `<span class="type-badge badge-thompson">${iconStar} Thompson Service</span>` : '';
   const dateLabel = ev.date || 'Ongoing';
   const signupBtn = ev.signup ? `<p class="action-label">Sign Up</p><div class="action-btns"><a class="btn btn-signup" href="${esc(ev.signup)}" target="_blank" rel="noopener">${iconLink} Sign Up to Serve</a></div>` : '';
-  const note = thompson ? `<p class="thompson-note"><strong>Thompson Service:</strong> this opportunity supports the Thompson Scholars program directly.</p>` : '';
+  const note = thompson ? `<p class="thompson-note"><strong>Thompson Service:</strong> This is service that supports the Thompson Scholarship Programs, or is hosted by the Thompson Scholarship Programs.</p>` : '';
   card.innerHTML = `
     <div class="card-header">
       <div class="date-badge recurring"><div class="mon" style="font-size:.5rem">${esc(dateLabel).slice(0,14)}</div></div>
