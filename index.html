@@ -66,6 +66,33 @@ aside { width:268px; flex-shrink:0; position:sticky; top:1.5rem; }
 
 .events-list { display:flex; flex-direction:column; gap:0.6rem; }
 
+/* ---- month calendar ---- */
+.calendar { background:var(--white); border:1.5px solid var(--border); border-radius:14px; padding:1rem 1.1rem 1.15rem; margin-bottom:1.8rem; }
+.cal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:.85rem; }
+.cal-title { font-size:1.02rem; font-weight:700; color:var(--brown); letter-spacing:.03em; text-transform:uppercase; }
+.cal-nav { width:32px; height:32px; border-radius:8px; border:1.5px solid var(--border); background:var(--white); color:var(--brown); font-size:1.15rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s, border-color .15s, color .15s; }
+.cal-nav:hover { background:var(--orange-light); border-color:var(--orange-mid); color:var(--orange); }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+.cal-dow-row { margin-bottom:5px; }
+.cal-dow { text-align:center; font-size:.58rem; font-weight:700; letter-spacing:.05em; color:var(--text-muted); text-transform:uppercase; }
+.cal-cell { position:relative; aspect-ratio:1/1; min-height:34px; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:.8rem; color:var(--text-mid); }
+.cal-cell.has-events { cursor:pointer; background:var(--orange-light); color:var(--brown); font-weight:600; transition:background .15s; }
+.cal-cell.has-events:hover { background:var(--orange-mid); }
+.cal-cell.today { box-shadow:inset 0 0 0 1.6px var(--seafoam); }
+.cal-cell.today .cal-num { color:var(--teal); font-weight:700; }
+.cal-cell.sel { background:var(--orange) !important; color:#fff; box-shadow:none; }
+.cal-cell.sel .cal-num { color:#fff; }
+.cal-cell.sel .cal-dot { background:#fff !important; }
+.cal-num { line-height:1; }
+.cal-dots { display:flex; gap:2px; height:5px; align-items:center; }
+.cal-dot { width:4px; height:4px; border-radius:50%; background:var(--orange); }
+.cal-dot.t { background:var(--teal); }
+.cal-legend { display:flex; gap:16px; margin-top:.75rem; padding-top:.7rem; border-top:1px solid var(--tan); font-size:.62rem; color:var(--text-muted); }
+.cal-legend span { display:inline-flex; align-items:center; gap:5px; }
+.cal-legend .cal-dot { width:5px; height:5px; }
+.clear-day { font-family:'Montserrat',sans-serif; font-size:.56rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--orange); background:var(--orange-light); border:1px solid var(--orange-mid); border-radius:20px; padding:3px 10px; cursor:pointer; }
+.clear-day:hover { background:var(--orange-mid); }
+
 .month-divider { font-size:1.35rem; font-weight:700; letter-spacing:0.02em; text-transform:uppercase; color:var(--teal); display:flex; align-items:center; gap:12px; margin:2.6rem 0 1.1rem; padding-top:1.3rem; border-top:2.5px solid var(--seafoam); }
 .month-divider::before { content:''; width:12px; height:12px; background:var(--teal); border-radius:3px; transform:rotate(45deg); flex-shrink:0; }
 .events-list > .month-divider:first-child { border-top:none; padding-top:0; margin-top:0.2rem; }
@@ -168,7 +195,8 @@ footer { max-width:1080px; margin:0 auto; padding:1.5rem 2rem 3rem; font-size:.6
       <div id="loading">Loading…</div>
       <div id="error-msg" style="display:none"></div>
       <div id="content" style="display:none">
-        <p class="section-label">Upcoming Opportunities</p>
+        <div id="calendar" class="calendar"></div>
+        <p class="section-label" id="list-heading">Upcoming Opportunities</p>
         <div id="upcoming-list" class="events-list"></div>
         <div id="past-section" class="past-section" style="display:none">
           <button id="past-toggle" class="past-toggle" type="button" aria-expanded="false">
@@ -263,6 +291,7 @@ const iconStar = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentC
 const GID = '0';
 let upcoming = [], past = [];
 let upList, pastList, pastSection;
+let allEvents = [], selectedDay = null, calYear, calMonth, dayMap = {};
 
 function matchEv(ev,q){ return (ev.event+' '+ev.desc).toLowerCase().includes(q); }
 
@@ -295,9 +324,63 @@ function buildCard(ev, isPast){
   return card;
 }
 
+function todayMid(){ const t=new Date(); t.setHours(0,0,0,0); return t; }
+function dkey(y,m,d){ return y+'-'+m+'-'+d; }
+function searchVal(){ const s=document.getElementById('search'); return s ? s.value.trim().toLowerCase() : ''; }
+function buildDayMap(){ dayMap={}; allEvents.forEach(ev=>{ if(!ev.date) return; const k=dkey(ev.date.getFullYear(),ev.date.getMonth(),ev.date.getDate()); (dayMap[k]=dayMap[k]||[]).push(ev); }); }
+
+function renderCalendar(){
+  const cal=document.getElementById('calendar'); if(!cal) return;
+  const t=todayMid();
+  const startDow=new Date(calYear,calMonth,1).getDay();
+  const dim=new Date(calYear,calMonth+1,0).getDate();
+  let cells='';
+  for(let i=0;i<startDow;i++) cells+='<div class="cal-cell empty"></div>';
+  for(let d=1; d<=dim; d++){
+    const evs=dayMap[dkey(calYear,calMonth,d)];
+    const isToday=(calYear===t.getFullYear()&&calMonth===t.getMonth()&&d===t.getDate());
+    const isSel=selectedDay&&selectedDay.getFullYear()===calYear&&selectedDay.getMonth()===calMonth&&selectedDay.getDate()===d;
+    let dots='';
+    if(evs){ const n=Math.min(evs.length,3); const hasT=evs.some(e=>isYes(e.thompson));
+      dots='<div class="cal-dots">'+Array.from({length:n}).map((_,i)=>'<span class="cal-dot'+(hasT&&i===0?' t':'')+'"></span>').join('')+'</div>'; }
+    cells+='<div class="cal-cell'+(evs?' has-events':'')+(isToday?' today':'')+(isSel?' sel':'')+'" data-d="'+d+'"><span class="cal-num">'+d+'</span>'+dots+'</div>';
+  }
+  const dows=['S','M','T','W','T','F','S'].map(x=>'<div class="cal-dow">'+x+'</div>').join('');
+  cal.innerHTML='<div class="cal-head"><button class="cal-nav" id="cal-prev" type="button" aria-label="Previous month">\u2039</button><div class="cal-title">'+MONF[calMonth]+' '+calYear+'</div><button class="cal-nav" id="cal-next" type="button" aria-label="Next month">\u203a</button></div>'
+    +'<div class="cal-grid cal-dow-row">'+dows+'</div><div class="cal-grid">'+cells+'</div>'
+    +'<div class="cal-legend"><span><span class="cal-dot"></span> Events</span><span><span class="cal-dot t"></span> Thompson Service</span></div>';
+  document.getElementById('cal-prev').addEventListener('click', ()=>{ calMonth--; if(calMonth<0){calMonth=11;calYear--;} renderCalendar(); });
+  document.getElementById('cal-next').addEventListener('click', ()=>{ calMonth++; if(calMonth>11){calMonth=0;calYear++;} renderCalendar(); });
+  cal.querySelectorAll('.cal-cell.has-events').forEach(c=>{ c.addEventListener('click', ()=> selectDay(new Date(calYear,calMonth,parseInt(c.dataset.d,10)))); });
+}
+
+function selectDay(d){
+  if(selectedDay && selectedDay.getTime()===d.getTime()){ clearDay(); return; }
+  selectedDay=d; renderCalendar(); render(searchVal());
+  const h=document.getElementById('list-heading'); if(h) h.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function clearDay(){ selectedDay=null; renderCalendar(); render(searchVal()); }
+
+function renderDay(q, heading){
+  heading.innerHTML='Events on '+fullDate(selectedDay)+' <button id="clear-day" class="clear-day" type="button">Show all</button>';
+  pastSection.style.display='none';
+  document.getElementById('no-results').style.display='none';
+  const t=todayMid();
+  const evs=allEvents.filter(ev=> ev.date && ev.date.getFullYear()===selectedDay.getFullYear() && ev.date.getMonth()===selectedDay.getMonth() && ev.date.getDate()===selectedDay.getDate())
+                     .filter(ev=> !q || matchEv(ev,q))
+                     .sort((a,b)=> (a.event>b.event?1:-1));
+  if(!evs.length){ upList.innerHTML='<div class="no-events">No opportunities on this day'+(q?' match your search':'')+'.</div>'; }
+  else evs.forEach(ev=> upList.appendChild(buildCard(ev, ev.date<t)));
+  const cb=document.getElementById('clear-day'); if(cb) cb.addEventListener('click', ()=> clearDay());
+}
+
 function render(q){
   q = q || '';
-  upList.innerHTML = ''; pastList.innerHTML = '';
+  const heading = document.getElementById('list-heading');
+  upList.innerHTML = '';
+  if (selectedDay){ renderDay(q, heading); return; }
+  heading.textContent = 'Upcoming Opportunities';
+  pastList.innerHTML = '';
   let shownUp = 0, lastKey = null;
   upcoming.forEach(ev=>{
     if (q && !matchEv(ev,q)) return;
@@ -334,7 +417,12 @@ async function init(){
     const today = new Date(); today.setHours(0,0,0,0);
     upcoming = events.filter(e=> !e.date || e.date >= today).sort((a,b)=> (!a.date?1:!b.date?-1:a.date-b.date));
     past = events.filter(e=> e.date && e.date < today).sort((a,b)=> b.date-a.date);
+    allEvents = events; buildDayMap();
+    const nowT = todayMid(); calYear = nowT.getFullYear(); calMonth = nowT.getMonth();
+    const hasThisMonth = Object.keys(dayMap).some(k=>{ const pr=k.split('-'); return +pr[0]===calYear && +pr[1]===calMonth; });
+    if(!hasThisMonth && upcoming.length && upcoming[0].date){ calYear=upcoming[0].date.getFullYear(); calMonth=upcoming[0].date.getMonth(); }
     loading.style.display='none'; content.style.display='block';
+    renderCalendar();
     render(''); wireSearch(render);
   } catch(err){
     loading.style.display='none'; errorMsg.style.display='block';
