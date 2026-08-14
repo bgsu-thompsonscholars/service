@@ -67,7 +67,17 @@ aside { width:268px; flex-shrink:0; position:sticky; top:1.5rem; }
 .events-list { display:flex; flex-direction:column; gap:0.6rem; }
 
 /* ---- month calendar ---- */
-.calendar { background:var(--white); border:1.5px solid var(--border); border-radius:12px; padding:.7rem .78rem .82rem; margin-bottom:1.8rem; max-width:355px; }
+.cal-row { display:flex; gap:1.3rem; align-items:flex-start; flex-wrap:wrap; margin-bottom:1.8rem; }
+.issue-tags { flex:1 1 210px; min-width:190px; }
+.issue-tags .it-label { font-size:.6rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--text-muted); margin-bottom:.7rem; }
+.it-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.it-chip { font-family:'Montserrat',sans-serif; font-size:.68rem; font-weight:500; color:var(--text-mid); background:var(--tan-light); border:1.5px solid var(--border); border-radius:20px; padding:5px 11px; cursor:pointer; transition:background .14s, border-color .14s, color .14s; line-height:1.2; }
+.it-chip:hover { border-color:var(--orange-mid); color:var(--orange); }
+.it-chip.active { background:var(--orange); border-color:var(--orange); color:#fff; }
+.hashtags { display:flex; flex-wrap:wrap; gap:6px; margin:.55rem 0 .1rem; }
+.hashtag { font-size:.66rem; font-weight:600; color:var(--teal); background:var(--teal-light); border:1px solid #c4dde1; border-radius:20px; padding:2px 9px; cursor:pointer; transition:background .14s, color .14s; }
+.hashtag:hover, .hashtag.active { background:var(--teal); color:#fff; }
+.calendar { background:var(--white); border:1.5px solid var(--border); border-radius:12px; padding:.7rem .78rem .82rem; margin-bottom:0; width:355px; max-width:100%; flex:0 0 auto; }
 .cal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:.55rem; }
 .cal-title { font-size:.86rem; font-weight:700; color:var(--brown); letter-spacing:.03em; text-transform:uppercase; }
 .cal-nav { width:26px; height:26px; border-radius:7px; border:1.5px solid var(--border); background:var(--white); color:var(--brown); font-size:1rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s, border-color .15s, color .15s; }
@@ -195,7 +205,10 @@ footer { max-width:1080px; margin:0 auto; padding:1.5rem 2rem 3rem; font-size:.6
       <div id="loading">Loading…</div>
       <div id="error-msg" style="display:none"></div>
       <div id="content" style="display:none">
-        <div id="calendar" class="calendar"></div>
+        <div class="cal-row">
+          <div id="issue-tags" class="issue-tags"></div>
+          <div id="calendar" class="calendar"></div>
+        </div>
         <p class="section-label" id="list-heading">Upcoming Opportunities</p>
         <div id="upcoming-list" class="events-list"></div>
         <div id="past-section" class="past-section" style="display:none">
@@ -292,8 +305,14 @@ const GID = '0';
 let upcoming = [], past = [];
 let upList, pastList, pastSection;
 let allEvents = [], selectedDay = null, calYear, calMonth, dayMap = {};
+let selectedTag = null;
+const ISSUE_AREAS = ['Animal Welfare','Children & Youth','Community Enrichment','Education','Environmentalism & Sustainability','Food & Basic Needs Security','Gender Equity','Housing & Homelessness','LGBTQ+','Public Health','Race, Ethnicity, & Diversity','Senior Welfare','Other'];
+function normIssue(x){ return (x||'').toLowerCase().replace(/\+/g,'').replace(/\s+/g,' ').trim(); }
+function parseIssues(raw){ if(!raw) return []; const R=normIssue(raw); return ISSUE_AREAS.filter(a=> R.indexOf(normIssue(a))!==-1); }
+function hashOf(a){ return '#'+a.replace(/[^A-Za-z0-9]/g,''); }
+function matchTag(ev){ return !selectedTag || (ev.issues && ev.issues.indexOf(selectedTag)!==-1); }
 
-function matchEv(ev,q){ return (ev.event+' '+ev.desc).toLowerCase().includes(q); }
+function matchEv(ev,q){ return (ev.event+' '+ev.desc+' '+((ev.issues||[]).join(' '))).toLowerCase().includes(q); }
 
 function buildCard(ev, isPast){
   const d = ev.date;
@@ -318,9 +337,11 @@ function buildCard(ev, isPast){
     </div>
     <div class="card-body">
       ${ev.desc ? `<p class="info-text">${esc(ev.desc)}</p>` : `<p class="info-text sub" style="font-style:italic">No additional details provided.</p>`}
+      ${(ev.issues && ev.issues.length) ? `<div class="hashtags">${ev.issues.map(a=>`<span class="hashtag" data-issue="${esc(a)}">${hashOf(a)}</span>`).join('')}</div>` : ''}
       ${note}${signupBtn}
     </div>`;
   card.querySelector('.card-header').addEventListener('click', ()=> card.classList.toggle('open'));
+  card.querySelectorAll('.hashtag').forEach(h=> h.addEventListener('click', (e)=>{ e.stopPropagation(); selectTag(h.dataset.issue); }));
   return card;
 }
 
@@ -337,13 +358,15 @@ function renderCalendar(){
   let cells='';
   for(let i=0;i<startDow;i++) cells+='<div class="cal-cell empty"></div>';
   for(let d=1; d<=dim; d++){
-    const evs=dayMap[dkey(calYear,calMonth,d)];
+    const evsAll=dayMap[dkey(calYear,calMonth,d)];
+    const evs=evsAll ? evsAll.filter(matchTag) : null;
+    const hasEv=!!(evs && evs.length);
     const isToday=(calYear===t.getFullYear()&&calMonth===t.getMonth()&&d===t.getDate());
     const isSel=selectedDay&&selectedDay.getFullYear()===calYear&&selectedDay.getMonth()===calMonth&&selectedDay.getDate()===d;
     let dots='';
-    if(evs){ const n=Math.min(evs.length,3); const hasT=evs.some(e=>isYes(e.thompson));
+    if(hasEv){ const n=Math.min(evs.length,3); const hasT=evs.some(e=>isYes(e.thompson));
       dots='<div class="cal-dots">'+Array.from({length:n}).map((_,i)=>'<span class="cal-dot'+(hasT&&i===0?' t':'')+'"></span>').join('')+'</div>'; }
-    cells+='<div class="cal-cell'+(evs?' has-events':'')+(isToday?' today':'')+(isSel?' sel':'')+'" data-d="'+d+'"><span class="cal-num">'+d+'</span>'+dots+'</div>';
+    cells+='<div class="cal-cell'+(hasEv?' has-events':'')+(isToday?' today':'')+(isSel?' sel':'')+'" data-d="'+d+'"><span class="cal-num">'+d+'</span>'+dots+'</div>';
   }
   const dows=['S','M','T','W','T','F','S'].map(x=>'<div class="cal-dow">'+x+'</div>').join('');
   cal.innerHTML='<div class="cal-head"><button class="cal-nav" id="cal-prev" type="button" aria-label="Previous month">\u2039</button><div class="cal-title">'+MONF[calMonth]+' '+calYear+'</div><button class="cal-nav" id="cal-next" type="button" aria-label="Next month">\u203a</button></div>'
@@ -361,6 +384,19 @@ function selectDay(d){
 }
 function clearDay(){ selectedDay=null; renderCalendar(); render(searchVal()); }
 
+function renderTags(){
+  const box=document.getElementById('issue-tags'); if(!box) return;
+  const present=ISSUE_AREAS.filter(a=> allEvents.some(e=> e.issues && e.issues.indexOf(a)!==-1));
+  if(!present.length){ box.innerHTML=''; box.style.display='none'; return; }
+  box.style.display='';
+  let chips='<button type="button" class="it-chip'+(selectedTag?'':' active')+'" data-issue="">All areas</button>';
+  chips+=present.map(a=>'<button type="button" class="it-chip'+(selectedTag===a?' active':'')+'" data-issue="'+esc(a)+'">'+esc(a)+'</button>').join('');
+  box.innerHTML='<p class="it-label">Filter by Issue Area</p><div class="it-chips">'+chips+'</div>';
+  box.querySelectorAll('.it-chip').forEach(c=> c.addEventListener('click', ()=>{ const a=c.dataset.issue; if(!a) clearTag(); else selectTag(a); }));
+}
+function selectTag(a){ selectedTag=(selectedTag===a? null : a); renderTags(); renderCalendar(); render(searchVal()); const h=document.getElementById('list-heading'); if(h && selectedTag) h.scrollIntoView({behavior:'smooth',block:'start'}); }
+function clearTag(){ selectedTag=null; renderTags(); renderCalendar(); render(searchVal()); }
+
 function renderDay(q, heading){
   heading.innerHTML='Events on '+fullDate(selectedDay)+' <button id="clear-day" class="clear-day" type="button">Show all</button>';
   pastSection.style.display='none';
@@ -368,8 +404,9 @@ function renderDay(q, heading){
   const t=todayMid();
   const evs=allEvents.filter(ev=> ev.date && ev.date.getFullYear()===selectedDay.getFullYear() && ev.date.getMonth()===selectedDay.getMonth() && ev.date.getDate()===selectedDay.getDate())
                      .filter(ev=> !q || matchEv(ev,q))
+                     .filter(ev=> matchTag(ev))
                      .sort((a,b)=> (a.event>b.event?1:-1));
-  if(!evs.length){ upList.innerHTML='<div class="no-events">No opportunities on this day'+(q?' match your search':'')+'.</div>'; }
+  if(!evs.length){ upList.innerHTML='<div class="no-events">No opportunities on this day'+((q||selectedTag)?' match your filter':'')+'.</div>'; }
   else evs.forEach(ev=> upList.appendChild(buildCard(ev, ev.date<t)));
   const cb=document.getElementById('clear-day'); if(cb) cb.addEventListener('click', ()=> clearDay());
 }
@@ -384,17 +421,19 @@ function render(q){
   let shownUp = 0, lastKey = null;
   upcoming.forEach(ev=>{
     if (q && !matchEv(ev,q)) return;
+    if (!matchTag(ev)) return;
     if (ev.date){ const key = `${MONF[ev.date.getMonth()]} ${ev.date.getFullYear()}`;
       if (key !== lastKey){ const div=document.createElement('div'); div.className='month-divider'; div.textContent=key; upList.appendChild(div); lastKey=key; } }
     upList.appendChild(buildCard(ev,false)); shownUp++;
   });
   let shownPast = 0;
-  past.forEach(ev=>{ if (q && !matchEv(ev,q)) return; pastList.appendChild(buildCard(ev,true)); shownPast++; });
+  past.forEach(ev=>{ if (q && !matchEv(ev,q)) return; if (!matchTag(ev)) return; pastList.appendChild(buildCard(ev,true)); shownPast++; });
   pastSection.style.display = shownPast ? 'block' : 'none';
   document.getElementById('past-count').textContent = shownPast ? `(${shownPast})` : '';
   if (q && shownPast) pastSection.classList.add('open');
-  if (!q && !shownUp) upList.innerHTML = '<div class="no-events">No upcoming opportunities scheduled right now \u2014 check the ongoing and online links.</div>';
-  document.getElementById('no-results').style.display = (q && !shownUp && !shownPast) ? 'block' : 'none';
+  const filtered = q || selectedTag;
+  if (!filtered && !shownUp) upList.innerHTML = '<div class="no-events">No upcoming opportunities scheduled right now \u2014 check the ongoing and online links.</div>';
+  document.getElementById('no-results').style.display = (filtered && !shownUp && !shownPast) ? 'block' : 'none';
 }
 
 async function init(){
@@ -413,6 +452,7 @@ async function init(){
       desc: get(r,'Description','description'),
       signup: get(r,'How To Sign Up','how to sign up','sign up','signup','link'),
       thompson: get(r,'Thompson Service','thompson service','thompson'),
+      issues: parseIssues(get(r,'Issue Area','issue area','issue areas','issues','issue')),
     })).filter(e=> e.event);
     const today = new Date(); today.setHours(0,0,0,0);
     upcoming = events.filter(e=> !e.date || e.date >= today).sort((a,b)=> (!a.date?1:!b.date?-1:a.date-b.date));
@@ -422,6 +462,7 @@ async function init(){
     const hasThisMonth = Object.keys(dayMap).some(k=>{ const pr=k.split('-'); return +pr[0]===calYear && +pr[1]===calMonth; });
     if(!hasThisMonth && upcoming.length && upcoming[0].date){ calYear=upcoming[0].date.getFullYear(); calMonth=upcoming[0].date.getMonth(); }
     loading.style.display='none'; content.style.display='block';
+    renderTags();
     renderCalendar();
     render(''); wireSearch(render);
   } catch(err){
