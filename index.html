@@ -131,8 +131,18 @@ aside { width:268px; flex-shrink:0; position:sticky; top:1.5rem; }
 .title-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
 .event-title { font-size:.92rem; font-weight:600; color:var(--text); }
 .full-date { font-size:.72rem; font-weight:500; color:var(--text-muted); margin-top:3px; }
+.time-pill { display:inline-flex; align-items:center; gap:4px; margin-left:8px; font-size:.66rem; font-weight:600; color:var(--teal); background:var(--teal-light); border:1px solid #c4dde1; border-radius:20px; padding:2px 8px; vertical-align:middle; }
+.time-pill svg { flex-shrink:0; }
+.event-card.past .time-pill { color:#a99a86; background:#efe9e0; border-color:#ddd2c2; }
 .type-badge { font-size:.57rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; padding:3px 8px; border-radius:20px; white-space:nowrap; }
 .badge-thompson { background:var(--orange-light); color:var(--orange); border:1px solid var(--orange-mid); }
+.badge-campus { background:var(--seafoam-light); color:var(--teal); border:1px solid var(--seafoam); display:inline-flex; align-items:center; gap:4px; }
+.badge-campus svg { flex-shrink:0; }
+.filter-row { margin:-0.6rem 0 1.6rem; }
+.campus-chip { display:inline-flex; align-items:center; gap:6px; font-family:'Montserrat',sans-serif; font-size:.7rem; font-weight:600; color:var(--teal); background:var(--white); border:1.5px solid var(--seafoam); border-radius:20px; padding:6px 13px; cursor:pointer; transition:background .14s, color .14s; }
+.campus-chip:hover { background:var(--seafoam-light); }
+.campus-chip.active { background:var(--teal); border-color:var(--teal); color:#fff; }
+.campus-chip svg { flex-shrink:0; }
 .chevron { color:var(--text-muted); flex-shrink:0; transition:transform .2s; }
 .event-card.open .chevron { transform:rotate(180deg); }
 .card-body { max-height:0; overflow:hidden; transition:max-height .25s ease, padding .25s ease; padding:0 1.1rem; }
@@ -201,6 +211,9 @@ footer { max-width:1080px; margin:0 auto; padding:1.5rem 2rem 3rem; font-size:.6
       <div class="search-wrap">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input id="search" class="search-input" type="search" placeholder="Search by name or description…" autocomplete="off" disabled>
+      </div>
+      <div class="filter-row">
+        <button id="campus-toggle" class="campus-chip" type="button"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>On-campus only</button>
       </div>
       <div id="loading">Loading…</div>
       <div id="error-msg" style="display:none"></div>
@@ -305,14 +318,15 @@ const GID = '0';
 let upcoming = [], past = [];
 let upList, pastList, pastSection;
 let allEvents = [], selectedDay = null, calYear, calMonth, dayMap = {};
-let selectedTag = null;
+let selectedTag = null, onCampusOnly = false;
 const ISSUE_AREAS = ['Animal Welfare','Children & Youth','Community Enrichment','Education','Environmentalism & Sustainability','Food & Basic Needs Security','Gender Equity','Housing & Homelessness','LGBTQ+','Public Health','Race, Ethnicity, & Diversity','Senior Welfare','Other'];
 function normIssue(x){ return (x||'').toLowerCase().replace(/\+/g,'').replace(/\s+/g,' ').trim(); }
 function parseIssues(raw){ if(!raw) return []; const R=normIssue(raw); return ISSUE_AREAS.filter(a=> R.indexOf(normIssue(a))!==-1); }
 function hashOf(a){ return '#'+a.replace(/[^A-Za-z0-9]/g,''); }
 function matchTag(ev){ return !selectedTag || (ev.issues && ev.issues.indexOf(selectedTag)!==-1); }
+function matchCampus(ev){ return !onCampusOnly || ev.onCampus; }
 
-function matchEv(ev,q){ return (ev.event+' '+ev.desc+' '+((ev.issues||[]).join(' '))).toLowerCase().includes(q); }
+function matchEv(ev,q){ return (ev.event+' '+ev.desc+' '+((ev.issues||[]).join(' '))+(ev.onCampus?' on campus oncampus':'')).toLowerCase().includes(q); }
 
 function buildCard(ev, isPast){
   const d = ev.date;
@@ -320,6 +334,7 @@ function buildCard(ev, isPast){
   card.className = 'event-card' + (isPast ? ' past' : '');
   const thompson = isYes(ev.thompson);
   const tBadge = thompson ? `<span class="type-badge badge-thompson">${iconStar} Thompson Service</span>` : '';
+  const cBadge = ev.onCampus ? `<span class="type-badge badge-campus"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>On Campus</span>` : '';
   const signupBtn = ev.signup ? `<p class="action-label">Sign Up</p><div class="action-btns"><a class="btn btn-signup" href="${esc(ev.signup)}" target="_blank" rel="noopener">${iconLink} Sign Up to Serve</a></div>` : '';
   const note = thompson ? `<p class="thompson-note"><strong>Thompson Service:</strong> This is service that supports the Thompson Scholarship Programs, or is hosted by the Thompson Scholarship Programs.</p>` : '';
   card.innerHTML = `
@@ -330,8 +345,8 @@ function buildCard(ev, isPast){
         <div class="dow">${d ? DOW[d.getDay()] : ''}</div>
       </div>
       <div class="card-info">
-        <div class="title-row"><span class="event-title">${esc(ev.event) || 'Service Opportunity'}</span>${tBadge}</div>
-        ${d ? `<div class="full-date">${fullDate(d)}</div>` : ''}
+        <div class="title-row"><span class="event-title">${esc(ev.event) || 'Service Opportunity'}</span>${tBadge}${cBadge}</div>
+        ${(d || ev.time) ? `<div class="full-date">${d ? fullDate(d) : ''}${ev.time ? `<span class="time-pill"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${esc(ev.time)}</span>` : ''}</div>` : ''}
       </div>
       <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
@@ -359,7 +374,7 @@ function renderCalendar(){
   for(let i=0;i<startDow;i++) cells+='<div class="cal-cell empty"></div>';
   for(let d=1; d<=dim; d++){
     const evsAll=dayMap[dkey(calYear,calMonth,d)];
-    const evs=evsAll ? evsAll.filter(matchTag) : null;
+    const evs=evsAll ? evsAll.filter(function(e){ return matchTag(e) && matchCampus(e); }) : null;
     const hasEv=!!(evs && evs.length);
     const isToday=(calYear===t.getFullYear()&&calMonth===t.getMonth()&&d===t.getDate());
     const isSel=selectedDay&&selectedDay.getFullYear()===calYear&&selectedDay.getMonth()===calMonth&&selectedDay.getDate()===d;
@@ -396,6 +411,7 @@ function renderTags(){
 }
 function selectTag(a){ selectedTag=(selectedTag===a? null : a); renderTags(); renderCalendar(); render(searchVal()); const h=document.getElementById('list-heading'); if(h && selectedTag) h.scrollIntoView({behavior:'smooth',block:'start'}); }
 function clearTag(){ selectedTag=null; renderTags(); renderCalendar(); render(searchVal()); }
+function toggleCampus(){ onCampusOnly=!onCampusOnly; const b=document.getElementById('campus-toggle'); if(b){ if(onCampusOnly) b.classList.add('active'); else b.classList.remove('active'); b.setAttribute('aria-pressed', onCampusOnly); } renderCalendar(); render(searchVal()); }
 
 function renderDay(q, heading){
   heading.innerHTML='Events on '+fullDate(selectedDay)+' <button id="clear-day" class="clear-day" type="button">Show all</button>';
@@ -405,6 +421,7 @@ function renderDay(q, heading){
   const evs=allEvents.filter(ev=> ev.date && ev.date.getFullYear()===selectedDay.getFullYear() && ev.date.getMonth()===selectedDay.getMonth() && ev.date.getDate()===selectedDay.getDate())
                      .filter(ev=> !q || matchEv(ev,q))
                      .filter(ev=> matchTag(ev))
+                     .filter(ev=> matchCampus(ev))
                      .sort((a,b)=> (a.event>b.event?1:-1));
   if(!evs.length){ upList.innerHTML='<div class="no-events">No opportunities on this day'+((q||selectedTag)?' match your filter':'')+'.</div>'; }
   else evs.forEach(ev=> upList.appendChild(buildCard(ev, ev.date<t)));
@@ -422,16 +439,17 @@ function render(q){
   upcoming.forEach(ev=>{
     if (q && !matchEv(ev,q)) return;
     if (!matchTag(ev)) return;
+    if (!matchCampus(ev)) return;
     if (ev.date){ const key = `${MONF[ev.date.getMonth()]} ${ev.date.getFullYear()}`;
       if (key !== lastKey){ const div=document.createElement('div'); div.className='month-divider'; div.textContent=key; upList.appendChild(div); lastKey=key; } }
     upList.appendChild(buildCard(ev,false)); shownUp++;
   });
   let shownPast = 0;
-  past.forEach(ev=>{ if (q && !matchEv(ev,q)) return; if (!matchTag(ev)) return; pastList.appendChild(buildCard(ev,true)); shownPast++; });
+  past.forEach(ev=>{ if (q && !matchEv(ev,q)) return; if (!matchTag(ev)) return; if (!matchCampus(ev)) return; pastList.appendChild(buildCard(ev,true)); shownPast++; });
   pastSection.style.display = shownPast ? 'block' : 'none';
   document.getElementById('past-count').textContent = shownPast ? `(${shownPast})` : '';
   if (q && shownPast) pastSection.classList.add('open');
-  const filtered = q || selectedTag;
+  const filtered = q || selectedTag || onCampusOnly;
   if (!filtered && !shownUp) upList.innerHTML = '<div class="no-events">No upcoming opportunities scheduled right now \u2014 check the ongoing and online links.</div>';
   document.getElementById('no-results').style.display = (filtered && !shownUp && !shownPast) ? 'block' : 'none';
 }
@@ -446,14 +464,19 @@ async function init(){
   document.getElementById('past-toggle').addEventListener('click', ()=>{ const open = pastSection.classList.toggle('open'); document.getElementById('past-toggle').setAttribute('aria-expanded', open); });
   try {
     const rows = parseCSV(await fetchSheet(GID));
-    const events = rows.map(r=>({
+    let events = rows.map(r=>({
       date: parseDate(get(r,'Date','date')),
       event: get(r,'Event','event','name'),
+      time: get(r,'Time','time'),
+      location: get(r,'Location','location'),
+      onCampus: (function(l){ return !!l && !/off/i.test(l); })(get(r,'Location','location')),
       desc: get(r,'Description','description'),
       signup: get(r,'How To Sign Up','how to sign up','sign up','signup','link'),
       thompson: get(r,'Thompson Service','thompson service','thompson'),
       issues: parseIssues(get(r,'Issue Area','issue area','issue areas','issues','issue')),
     })).filter(e=> e.event);
+    // collapse exact-duplicate rows (same date + event + sign-up link) into one card
+    { const _seen=new Set(); events = events.filter(e=>{ const k=(e.date?e.date.getTime():'nd')+'|'+e.event.toLowerCase().replace(/\s+/g,' ').trim()+'|'+(e.time||'').trim(); if(_seen.has(k)) return false; _seen.add(k); return true; }); }
     const today = new Date(); today.setHours(0,0,0,0);
     upcoming = events.filter(e=> !e.date || e.date >= today).sort((a,b)=> (!a.date?1:!b.date?-1:a.date-b.date));
     past = events.filter(e=> e.date && e.date < today).sort((a,b)=> b.date-a.date);
@@ -463,6 +486,7 @@ async function init(){
     if(!hasThisMonth && upcoming.length && upcoming[0].date){ calYear=upcoming[0].date.getFullYear(); calMonth=upcoming[0].date.getMonth(); }
     loading.style.display='none'; content.style.display='block';
     renderTags();
+    document.getElementById('campus-toggle').addEventListener('click', toggleCampus);
     renderCalendar();
     render(''); wireSearch(render);
   } catch(err){
