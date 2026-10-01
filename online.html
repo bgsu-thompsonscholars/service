@@ -385,6 +385,37 @@ function parseDate(raw){
 function fullDate(d){ return `${DOWF[d.getDay()]}, ${MONF[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`; }
 function isYes(v){ return /^\s*y/i.test(v||''); }
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── RICH TEXT RENDERER ──
+// Supports: **bold**, *italic*, blank lines = paragraphs, - bullets, {orange}..{/orange}, {teal}..{/teal}
+function renderMarkdown(text) {
+  if (!text) return '';
+  let t = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  const blocks = t.split(/\n\s*\n/);
+  return blocks.map(block => {
+    const lines = block.trim().split('\n');
+    const isList = lines.every(l => l.trim().match(/^[-•*]\s/));
+    if (isList) {
+      const items = lines.map(l => {
+        let content = l.trim().replace(/^[-•*]\s+/, '');
+        content = inlineMarkdown(content);
+        return `<li>${content}</li>`;
+      }).join('');
+      return `<ul style="margin:0.4em 0 0.4em 1.2em;padding:0;">${items}</ul>`;
+    }
+    const html = lines.map(l => inlineMarkdown(l.trim())).join('<br>');
+    return `<p style="margin:0 0 0.5em;">${html}</p>`;
+  }).join('');
+}
+function inlineMarkdown(text) {
+  return text
+    .replace(/\[(.+?)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:var(--orange);font-weight:600;text-decoration:underline;">$1</a>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code style="background:var(--tan);padding:1px 4px;border-radius:3px;font-size:0.9em;">$1</code>')
+    .replace(/\{orange\}(.+?)\{\/orange\}/g, '<span style="color:#fd5000;font-weight:600;">$1</span>')
+    .replace(/\{teal\}(.+?)\{\/teal\}/g, '<span style="color:#3F6E6E;font-weight:600;">$1</span>');
+}
 function wireSearch(render){ const s=document.getElementById('search'); s.disabled=false; s.addEventListener('input', ()=> render(s.value.trim().toLowerCase())); }
 
 const iconLink = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
@@ -410,7 +441,7 @@ function buildCard(ev){
       <svg class="chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
     <div class="card-body">
-      ${ev.desc ? `<p class="info-text">${esc(ev.desc)}</p>` : `<p class="info-text sub" style="font-style:italic">No description provided.</p>`}
+      ${ev.desc ? `<p class="info-text">${renderMarkdown(ev.desc)}</p>` : `<p class="info-text sub" style="font-style:italic">No description provided.</p>`}
       ${accessBtn}
     </div>`;
   card.querySelector('.card-header').addEventListener('click', ()=> card.classList.toggle('open'));
